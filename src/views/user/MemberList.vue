@@ -6,59 +6,34 @@ import {
 
 import { ref } from 'vue'
 
-//文章分类数据模型
-// const categorys = ref([
-//     {
-//         "id": 3,
-//         "categoryName": "美食",
-//         "categoryAlias": "my",
-//         "createTime": "2023-09-02 12:06:59",
-//         "updateTime": "2023-09-02 12:06:59"
-//     },
-//     {
-//         "id": 4,
-//         "categoryName": "娱乐",
-//         "categoryAlias": "yl",
-//         "createTime": "2023-09-02 12:08:16",
-//         "updateTime": "2023-09-02 12:08:16"
-//     },
-//     {
-//         "id": 5,
-//         "categoryName": "军事",
-//         "categoryAlias": "js",
-//         "createTime": "2023-09-02 12:08:33",
-//         "updateTime": "2023-09-02 12:08:33"
-//     }
-// ])
-
 //用户搜索时选中的发布状态
-const nickname = ref('')
+const name = ref('')
 
 //文章列表数据模型
-const users = ref([
+const members = ref([
     {
         "id": 5,
-        "username": "creep",
-        "nickname": "cp",
+        "name": "creep",
         "email": "22@qq.com",
+        "dormitory": "荷11",
         "createTime": "2023-09-03 11:55:30",
-        "updateTime": "2023-09-03 11:55:30"
+        "role": "干事"
     },
     {
        "id": 5,
-        "username": "creep",
-        "nickname": "cp",
+        "name": "creep",
         "email": "22@qq.com",
+        "dormitory": "荷11",
         "createTime": "2023-09-03 11:55:30",
-        "updateTime": "2023-09-03 11:55:30"
+        "role": "干事"
     },
     {
        "id": 5,
-        "username": "creep",
-        "nickname": "cp",
+        "name": "creep",
         "email": "22@qq.com",
+        "dormitory": "荷11",
         "createTime": "2023-09-03 11:55:30",
-        "updateTime": "2023-09-03 11:55:30"
+        "role": "干事"
     },
 ])
 
@@ -70,12 +45,12 @@ const pageSize = ref(3)//每页条数
 //当每页条数发生了变化，调用此函数
 const onSizeChange = (size) => {
     pageSize.value = size
-    userList()
+    memberList()
 }
 //当前页码发生变化，调用此函数
 const onCurrentChange = (num) => {
     pageNum.value = num
-    userList()
+    memberList()
 }
 
 // //回显文章分类
@@ -86,18 +61,18 @@ const onCurrentChange = (num) => {
 // }
 
 //获取文章列表数据
-import { userListService } from '@/api/user';
-const userList = async () => {
+import { memberListService } from '@/api/member';
+const memberList = async () => {
     let params = {
         pageNum: pageNum.value,
         pageSize: pageSize.value,
-        nickname: nickname.value ? nickname.value : null
+        name: name.value ? name.value : null
     }
-    let result = await userListService(params);
+    let result = await memberListService(params);
 
     //渲染视图
     total.value = result.data.total;
-    users.value = result.data.items;
+    members.value = result.data.items;
 
     //处理数据，给数据模型扩展一个分类名称属性
     // for (let i = 0; i < users.value.length; i++) {
@@ -123,7 +98,7 @@ const userInfoStore=useUserInfoStore();
 const userInfo = ref({...userInfoStore.info})
 
 // activityCategoryList();
-userList();
+memberList();
 // import { Plus } from '@element-plus/icons-vue'
 // import { QuillEditor } from '@vueup/vue-quill'
 // import '@vueup/vue-quill/dist/vue-quill.snow.css'
@@ -228,7 +203,7 @@ userList();
         <!-- 搜索表单 -->
         <el-form inline>
             <el-form-item label="姓名查询：">
-                <el-input v-model="nickname" style="width: 240px" placeholder="请输入要查询姓名" />
+                <el-input v-model="name" style="width: 240px" placeholder="请输入要查询姓名" />
                 <!-- <el-select placeholder="请选择" v-model="categoryId" style="width:200px;">
                     <el-option v-for="c in categorys" :key="c.id" :label="c.categoryName" :value="c.id">
                     </el-option>
@@ -242,17 +217,18 @@ userList();
                 </el-select>
             </el-form-item> -->
             <el-form-item>
-                <el-button type="primary" @click="userList">搜索</el-button>
-                <el-button @click="nickname = ''">重置</el-button>
-                <el-button v-if="userInfo.role=='管理员'" @click="downloadUsers">下载学生数据</el-button>
+                <el-button type="primary" @click="memberList">搜索</el-button>
+                <el-button @click="name = ''">重置</el-button>
+                <el-button v-if="userInfo.rolelevel>2" @click="downloadUsers">下载学生数据</el-button>
             </el-form-item>
         </el-form>
         <!-- 学生列表 -->
-        <el-table :data="users" style="width: 100%">
+        <el-table :data="members" style="width: 100%">
             <el-table-column label="id"  prop="id"></el-table-column>
-            <el-table-column label="用户名" prop="username"></el-table-column>
-            <el-table-column label="姓名" prop="nickname"></el-table-column>
+            <el-table-column label="姓名" prop="name"></el-table-column>
+            <el-table-column label="寝室楼" prop="dormitory"></el-table-column>
             <el-table-column label="邮箱" width="400" prop="email"> </el-table-column>
+            <el-table-column label="职位" prop="role"></el-table-column>
             <!-- <el-table-column label="状态" prop="state"></el-table-column> -->
             <!-- <el-table-column label="操作" width="100">
                 <template #default="{ row }">

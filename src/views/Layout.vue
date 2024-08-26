@@ -20,6 +20,19 @@ const userInfoStore=useUserInfoStore();
 const getUserInfo=async()=>{
     //调用接口
     let result=await userInfoService();
+    let memberInfo=await memberInfoService();
+    result.data.rolelevel=1;
+    if(memberInfo.data===null){
+        result.data.rolelevel=1;
+    }else if(memberInfo.data.role==='会员'){
+        result.data.rolelevel=2;
+    }else if(memberInfo.data.role==='干事'){
+        result.data.rolelevel=3;
+    }else if(memberInfo.data.role==='社长'){
+        result.data.rolelevel=4;
+    }
+    console.log(result.data.rolelevel);
+    
     //数据存储到pinia中
     userInfoStore.setInfo(result.data)
 }
@@ -68,6 +81,7 @@ const handleCommand=(command)=>{
     }
 }
 import { ref } from 'vue';
+import { memberInfoService } from '@/api/member';
 const userInfo = ref({...userInfoStore.info})
 </script>
 
@@ -78,7 +92,7 @@ const userInfo = ref({...userInfoStore.info})
             <div class="el-aside__logo"></div>
             <el-menu active-text-color="#ffd04b" background-color="#232323"  text-color="#fff"
                 router>
-                <el-menu-item v-if="userInfo.role=='管理员'" index="/activity/category">
+                <el-menu-item v-if="userInfo.rolelevel>2" index="/activity/category">
                     <el-icon>
                         <Management />
                     </el-icon>

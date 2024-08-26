@@ -5,7 +5,7 @@ import LayoutVue from '@/views/Layout.vue';
 
 import ActivitManageVue from '@/views/activity/ActivitManage.vue';
 import ActivityCategoryVue from '@/views/activity/ActivityCategory.vue';
-import UserListVue from '@/views/user/UserList.vue';
+import UserListVue from '@/views/user/MemberList.vue';
 import UserAvatarVue from '@/views/user/UserAvatar.vue';
 import UserInfoVue from '@/views/user/UserInfo.vue';
 import UserResetPasswordVue from '@/views/user/UserResetPassword.vue';
@@ -24,7 +24,7 @@ const routes = [
                          // 在单个路由的独享守卫
                     const userInfoStore=useUserInfoStore();
                     const userInfo = userInfoStore.info
-                    if(userInfo.role=="管理员"){
+                    if(userInfo.rolelevel>2){
                             next();
                     } else {
                         ElMessage.error('您的权限不足')

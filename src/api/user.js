@@ -41,7 +41,7 @@ export const userListService=(params)=>{
 import instance from '@/utils/request.js';
 export const downloadUsersService=async ()=> {
     try {
-        const response = await instance.get('/user/export/admin', { responseType: 'blob' });
+        const response = await instance.get('/user/export/worker', { responseType: 'blob' });
         
         // 处理文件下载
         const url = window.URL.createObjectURL(new Blob([response.data]));
