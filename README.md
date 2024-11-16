@@ -1,4 +1,6 @@
 # lhxh
+数据库课程设计：轮滑协会管理系统（前端部分）
+前端vue
 
 This template should help get you started developing with Vue 3 in Vite.
 
