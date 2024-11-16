@@ -47,7 +47,7 @@ instance.interceptors.response.use(
             return result.data;
         }
         //操作失败
-        ElMessage.error(result.data.msg?result.data.msg:'服务异常')
+        ElMessage.error(result.data.message?result.data.message:'服务异常')
         //异步的状态转化成失败的状态
         return Promise.reject(result.data)
     },

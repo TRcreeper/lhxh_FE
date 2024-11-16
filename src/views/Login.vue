@@ -74,6 +74,7 @@ const login = async () => {
     ElMessage.success(result.msg ? result.msg : '登录成功');
     //把得到的token存到pinia中
     tokenStore.setToken(result.data)
+    await getUserInfo()
     //跳转到首页
     router.push('/')
 }
@@ -123,6 +124,41 @@ fetchCaptcha()
     //     console.error('获取验证码失败:', error);
     // }
 
+import { userInfoService } from '@/api/user.js';
+import { memberInfoService } from '@/api/member';
+import useUserInfoStore from '@/stores/userInfo';
+const userInfoStore=useUserInfoStore();
+const getUserInfo=async()=>{
+    //调用接口
+    let result=await userInfoService();
+    let memberInfo=await memberInfoService();
+    //扩展memberId属性
+    result.data.memberId=null
+    result.data.rolelevel=1;
+    
+    if(memberInfo.data===null){
+        result.data.rolelevel=1;
+        result.data.memberId=null;
+    }else if(memberInfo.data.role==='会员'){
+        result.data.rolelevel=2;
+
+        result.data.memberId=memberInfo.data.id;
+    }else if(memberInfo.data.role==='干事'){
+        result.data.rolelevel=3;
+        
+        result.data.memberId=memberInfo.data.id;
+    }else if(memberInfo.data.role==='社长'){
+        result.data.rolelevel=4;
+        
+        result.data.memberId=memberInfo.data.id;
+    }
+    // console.log(result.data.rolelevel);
+    // console.log(result.data.memberId);
+    // console.log(memberInfo.data.id);
+    
+    //数据存储到pinia中
+    userInfoStore.setInfo(result.data)
+}
 </script>
 
 <template>
@@ -184,12 +220,12 @@ fetchCaptcha()
                     </el-row>
                 </el-form-item>
 
-                <el-form-item class="flex">
+                <!-- <el-form-item class="flex">
                     <div class="flex">
                         <el-checkbox>记住我</el-checkbox>
                         <el-link type="primary" :underline="false">忘记密码？</el-link>
                     </div>
-                </el-form-item>
+                </el-form-item> -->
                 <!-- 登录按钮 -->
                 <el-form-item>
                     <el-button class="button" type="primary" auto-insert-space @click="login">登录</el-button>

@@ -133,7 +133,7 @@ const deleteCategory = (row) => {
     <el-card class="page-container">
         <template #header>
             <div class="header">
-                <span>文章分类</span>
+                <span>活动分类</span>
                 <div class="extra">
                     <el-button type="primary" @click="dialogVisible = true; title = '添加分类'; clearData()">添加分类</el-button>
                 </div>

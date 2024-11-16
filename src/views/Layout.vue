@@ -7,7 +7,13 @@ import {
     Crop,
     EditPen,
     SwitchButton,
-    CaretBottom
+    CaretBottom,
+    CirclePlusFilled,
+    Bell,
+    House,
+    TakeawayBox,
+    Bicycle,
+    Document
 } from '@element-plus/icons-vue'
 import avatar from '@/assets/default.png'
 
@@ -17,27 +23,27 @@ import { useTokenStore } from '@/stores/token';
 const tokenStore=useTokenStore();
 const userInfoStore=useUserInfoStore();
 //调用函数获取详细信息
-const getUserInfo=async()=>{
-    //调用接口
-    let result=await userInfoService();
-    let memberInfo=await memberInfoService();
-    result.data.rolelevel=1;
-    if(memberInfo.data===null){
-        result.data.rolelevel=1;
-    }else if(memberInfo.data.role==='会员'){
-        result.data.rolelevel=2;
-    }else if(memberInfo.data.role==='干事'){
-        result.data.rolelevel=3;
-    }else if(memberInfo.data.role==='社长'){
-        result.data.rolelevel=4;
-    }
-    console.log(result.data.rolelevel);
+// const getUserInfo=async()=>{
+//     //调用接口
+//     let result=await userInfoService();
+//     let memberInfo=await memberInfoService();
+//     result.data.rolelevel=1;
+//     if(memberInfo.data===null){
+//         result.data.rolelevel=1;
+//     }else if(memberInfo.data.role==='会员'){
+//         result.data.rolelevel=2;
+//     }else if(memberInfo.data.role==='干事'){
+//         result.data.rolelevel=3;
+//     }else if(memberInfo.data.role==='社长'){
+//         result.data.rolelevel=4;
+//     }
+//     console.log(result.data.rolelevel);
     
-    //数据存储到pinia中
-    userInfoStore.setInfo(result.data)
-}
+//     //数据存储到pinia中
+//     userInfoStore.setInfo(result.data)
+// }
 
-getUserInfo();
+// getUserInfo();
 
 //条目被点击后调用函数
 import {useRouter} from 'vue-router';
@@ -83,6 +89,9 @@ const handleCommand=(command)=>{
 import { ref } from 'vue';
 import { memberInfoService } from '@/api/member';
 const userInfo = ref({...userInfoStore.info})
+
+console.log(userInfo.value.rolelevel);
+
 </script>
 
 <template>
@@ -90,26 +99,69 @@ const userInfo = ref({...userInfoStore.info})
         <!-- 左侧菜单 -->
         <el-aside width="200px">
             <div class="el-aside__logo"></div>
-            <el-menu active-text-color="#ffd04b" background-color="#232323"  text-color="#fff"
+            <el-menu active-text-color="#FFD04B" :style="{ background: 'linear-gradient(to right, #273ff3, #FFD04B)' }"  text-color="#FFFFFF"
                 router>
+                <el-menu-item index="/homePage">
+                    <el-icon>
+                        <House />
+                    </el-icon>
+                    <span>首页</span>
+                </el-menu-item>
+
+
+                <el-menu-item v-if="userInfo.rolelevel<2" index="/apply/applyfor">
+                    <el-icon>
+                        <CirclePlusFilled />
+                    </el-icon>
+                    <span>申请入社</span>
+                </el-menu-item>
+
+                <el-menu-item v-if="userInfo.rolelevel>2" index="/apply/list">
+                    <el-icon>
+                        <Bell />
+                    </el-icon>
+                    <span>入社审批</span>
+                </el-menu-item>
+
                 <el-menu-item v-if="userInfo.rolelevel>2" index="/activity/category">
                     <el-icon>
                         <Management />
                     </el-icon>
-                    <span>文章分类</span>
+                    <span>活动分类</span>
                 </el-menu-item>
+
                 <el-menu-item index="/activity/manage">
                     <el-icon>
-                        <Promotion />
+                        <Bicycle />
                     </el-icon>
-                    <span>文章管理</span>
+                    <span>社团活动</span>
                 </el-menu-item>
-                <el-menu-item index="/user/list">
+
+                <!-- <el-icon><Document /></el-icon> -->
+
+                <el-menu-item v-if="userInfo.rolelevel>1" index="/member/list">
                     <el-icon>
-                        <Management />
+                        <Document />
                     </el-icon>
                     <span>学生列表</span>
                 </el-menu-item>
+
+
+
+                <el-menu-item v-if="userInfo.rolelevel>1" index="/equipment/list">
+                    <el-icon>
+                        <TakeawayBox />
+                    </el-icon>
+                    <span>闲置设备</span>
+                </el-menu-item>
+
+                <el-menu-item v-if="userInfo.rolelevel>2" index="/borrow/list">
+                    <el-icon>
+                        <Promotion />
+                    </el-icon>
+                    <span>借用设备管理</span>
+                </el-menu-item>
+
                 <el-sub-menu >
                     <template #title>
                         <el-icon>
@@ -136,6 +188,20 @@ const userInfo = ref({...userInfoStore.info})
                         <span>重置密码</span>
                     </el-menu-item>
                 </el-sub-menu>
+
+                <el-menu-item v-if="userInfo.rolelevel>0" index="/recommendation/recommendationSubmit">
+                    <el-icon>
+                        <Promotion />
+                    </el-icon>
+                    <span>建议邮箱</span>
+                </el-menu-item>
+
+                <el-menu-item v-if="userInfo.rolelevel>2" index="/recommendation/recommendationList">
+                    <el-icon>
+                        <Promotion />
+                    </el-icon>
+                    <span>管理建议</span>
+                </el-menu-item>
             </el-menu>
         </el-aside>
         <!-- 右侧主区域 -->
@@ -178,12 +244,20 @@ const userInfo = ref({...userInfoStore.info})
 </template>
 
 <style lang="scss" scoped>
+
+
 .layout-container {
     height: 100vh;
+    .el-menu-item {
+    font-weight: bold; /* 或者使用 700 */
+    background: linear-gradient(to right, #294ff8, #efd89a);
+
+}
+
 
     .el-aside {
-        background-color: #232323;
-
+        // background-color: #6fbffc;
+        background: linear-gradient(to right, #199bfe, #efd89a);
         &__logo {
             height: 120px;
             background: url('@/assets/logo.png') no-repeat center / 120px auto;
@@ -195,7 +269,8 @@ const userInfo = ref({...userInfoStore.info})
     }
 
     .el-header {
-        background-color: #fff;
+        // background-color: #b9cbed;
+        background: linear-gradient(to right, #e4ef9a, #60b6f9);
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -205,7 +280,7 @@ const userInfo = ref({...userInfoStore.info})
             align-items: center;
 
             .el-icon {
-                color: #999;
+                color: #4c9696;
                 margin-left: 10px;
             }
 
@@ -221,7 +296,7 @@ const userInfo = ref({...userInfoStore.info})
         align-items: center;
         justify-content: center;
         font-size: 14px;
-        color: #666;
+        color: #096878;
     }
 }
 </style>

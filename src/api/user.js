@@ -12,6 +12,7 @@ export const userRegisterService=(registerDate)=>{
 }
 
 import globalcapturekey from './globalvar';
+
 //提供调用登录接口的函数
 export const userLoginService=(loginData)=>{
     const params=new URLSearchParams()
@@ -36,8 +37,6 @@ export const userListService=(params)=>{
     return request.get('/user',{params:params})
 }
 
-
-
 import instance from '@/utils/request.js';
 export const downloadUsersService=async ()=> {
     try {
@@ -56,4 +55,9 @@ export const downloadUsersService=async ()=> {
         console.error('下载失败:', error);
         // 处理错误
     }
+}
+
+//更新密码
+export const updatePwdService=(Pwddata)=>{
+    return request.patch('/user/updatePwd',Pwddata)
 }

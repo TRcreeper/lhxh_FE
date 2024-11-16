@@ -1,7 +1,8 @@
 <script setup>
 import {
     Edit,
-    Delete
+    Delete,
+    Pointer
 } from '@element-plus/icons-vue'
 
 import { ref } from 'vue'
@@ -14,6 +15,7 @@ const categorys = ref([
         "categoryAlias": "my",
         "createTime": "2023-09-02 12:06:59",
         "updateTime": "2023-09-02 12:06:59"
+        
     },
     {
         "id": 4,
@@ -41,40 +43,46 @@ const state = ref('')
 const activities = ref([
     {
         "id": 5,
-        "title": "陕西旅游攻略",
-        "content": "兵马俑,华清池,法门寺,华山...爱去哪去哪...",
+        "title": "轮滑",
+        "content": "今日正常常规",
         "coverImg": "https://big-event-gwd.oss-cn-beijing.aliyuncs.com/9bf1cf5b-1420-4c1b-91ad-e0f4631cbed4.png",
         "state": "草稿",
         "categoryId": 2,
-        "createTime": "2023-09-03 11:55:30",
-        "updateTime": "2023-09-03 11:55:30"
+        "createTime": "2024-09-03 11:55:30",
+        "updateTime": "2023-09-03 11:55:30",
+        "startTime": "2023-09-03 11:55:30",
+        "progressState": "未开始"
     },
     {
         "id": 5,
-        "title": "陕西旅游攻略",
-        "content": "兵马俑,华清池,法门寺,华山...爱去哪去哪...",
+        "title": "轮滑",
+        "content": "今日正常常规",
         "coverImg": "https://big-event-gwd.oss-cn-beijing.aliyuncs.com/9bf1cf5b-1420-4c1b-91ad-e0f4631cbed4.png",
         "state": "草稿",
         "categoryId": 2,
-        "createTime": "2023-09-03 11:55:30",
-        "updateTime": "2023-09-03 11:55:30"
+        "createTime": "2024-09-03 11:55:30",
+        "updateTime": "2023-09-03 11:55:30",
+        "startTime": "2023-09-03 11:55:30",
+        "progressState": "未开始"
     },
     {
         "id": 5,
-        "title": "陕西旅游攻略",
-        "content": "兵马俑,华清池,法门寺,华山...爱去哪去哪...",
+        "title": "轮滑",
+        "content": "今日正常常规",
         "coverImg": "https://big-event-gwd.oss-cn-beijing.aliyuncs.com/9bf1cf5b-1420-4c1b-91ad-e0f4631cbed4.png",
         "state": "草稿",
         "categoryId": 2,
-        "createTime": "2023-09-03 11:55:30",
-        "updateTime": "2023-09-03 11:55:30"
+        "createTime": "2024-09-03 11:55:30",
+        "updateTime": "2023-09-03 11:55:30",
+        "startTime": "2023-09-03 11:55:30",
+        "progressState": "未开始"
     },
 ])
 
 //分页条数据模型
 const pageNum = ref(1)//当前页
 const total = ref(20)//总条数
-const pageSize = ref(3)//每页条数
+const pageSize = ref(5)//每页条数
 
 //当每页条数发生了变化，调用此函数
 const onSizeChange = (size) => {
@@ -87,14 +95,14 @@ const onCurrentChange = (num) => {
     activityList()
 }
 
-//回显文章分类
-import { activityCategoryListService, activityListService,activityAddService,activityUpdateService } from '@/api/activity.js'
+//回显活动分类
+import { activityCategoryListService, activityListService, activityAddService, activityUpdateService, activityDraftListService } from '@/api/activity.js'
 const activityCategoryList = async () => {
     let result = await activityCategoryListService();
     categorys.value = result.data;
 }
 
-//获取文章列表数据
+//获取活动列表数据
 const activityList = async () => {
     let params = {
         pageNum: pageNum.value,
@@ -102,7 +110,16 @@ const activityList = async () => {
         categoryId: categoryId.value ? categoryId.value : null,
         state: state.value ? state.value : null
     }
-    let result = await activityListService(params);
+    let result = null
+    console.log(params.state);
+
+    if (params.state === '草稿') {
+        //读取个人草稿活动
+        result = await activityDraftListService(params)
+    } else {
+        //读取所有已发布活动
+        result = await activityListService(params);
+    }
 
     //渲染视图
     total.value = result.data.total;
@@ -125,66 +142,93 @@ activityList();
 import { Plus } from '@element-plus/icons-vue'
 import { QuillEditor } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css'
-import { ElMessage,ElMessageBox } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 //控制抽屉是否显示
 const visibleDrawer = ref(false)
+const visibleDrawer2 = ref(false)
 //添加表单数据模型
 const activityModel = ref({
     title: '',
     categoryId: '',
     // coverImg: '',
     content: '',
-    state: ''
+    state: '',
+    startTime: '',
+    progressState: ''
 })
 
 //添加文章
-const addActivity=async(clickState)=>{
-    activityModel.value.state=clickState;
+const addActivity = async (clickState) => {
+    activityModel.value.state = clickState;
     //调用接口
-    let result=await activityAddService(activityModel.value);
-    ElMessage.success(result.msg?result.msg:'添加成功');
-    visibleDrawer.value=false;
+    let result = await activityAddService(activityModel.value);
+    ElMessage.success(result.msg ? result.msg : '添加成功');
+    visibleDrawer.value = false;
     //刷新列表
     activityList();
 }
 
 //定义变量控制标题展示
-const title=ref('')
+const title = ref('')
 
 
 //展示编辑弹窗
-const showActivity=(row)=>{
-    visibleDrawer.value=true;title.value='编辑活动'
+const showActivity = (row) => {
+    visibleDrawer.value = true; title.value = '编辑活动'
+
     //数据拷贝
-    activityModel.value.title=row.title;
-    activityModel.value.categoryId=row.categoryId;
-    activityModel.value.content=row.content;
-    activityModel.value.state=row.state;
+    activityModel.value.title = row.title;
+    activityModel.value.categoryId = row.categoryId;
+    activityModel.value.content = row.content;
+    activityModel.value.state = row.state;
+    // activityModel.value.startTime=row.startTime;
+
+    // LocalDateTime 字符串（假设为东八区时间）
+    const localDateTimeString = row.startTime;
+
+    // 替换空格为 'T'，以符合 ISO 8601 格式
+    const isoDateTimeString = localDateTimeString.replace(' ', 'T') + '+08:00';
+
+    // 创建一个 JavaScript Date 对象
+    const localDateTime = new Date(isoDateTimeString);
+
+    // 转换为 UTC 时间字符串
+    const utcString = localDateTime.toISOString();
+
+    console.log("UTC Time:", utcString);
+    activityModel.value.startTime = utcString;
+
+    activityModel.value.progressState = row.progressState;
+
     //扩展id属性传递给后台
-    activityModel.value.id=row.id
+    activityModel.value.id = row.id
 }
 
-const updateActivity=async(clickState)=>{
-    activityModel.value.state=clickState;
+
+
+const updateActivity = async (clickState) => {
+    activityModel.value.state = clickState;
     //调用接口
-    let result=await activityUpdateService(activityModel.value);
-    ElMessage.success(result.msg?result.msg:'修改成功');
-    visibleDrawer.value=false;
+    let result = await activityUpdateService(activityModel.value);
+    ElMessage.success(result.msg ? result.msg : '修改成功');
+    visibleDrawer.value = false;
     //刷新列表
     activityList();
 }
 
 //清空模型数据
-const clearData=()=>{
-    activityModel.value.title='';
-    activityModel.value.categoryId='';
-    activityModel.value.content=' ';
-    activityModel.value.state='';
+const clearData = () => {
+    activityModel.value.title = '';
+    activityModel.value.categoryId = '';
+    activityModel.value.content = ' ';
+    activityModel.value.state = '';
+    activityModel.value.startTime = '';
+    activityModel.value.progressState = '';
 }
 
 import { activityDeleteService } from '@/api/activity.js';
 //删除分类
-const deleteActivity=(row)=>{
+const deleteActivity = (row) => {
     //提示用户 确认框
     ElMessageBox.confirm(
         '你确认要删除该活动信息吗?',
@@ -214,25 +258,167 @@ const deleteActivity=(row)=>{
 }
 
 import useUserInfoStore from '@/stores/userInfo';
-const userInfoStore=useUserInfoStore();
-const userInfo = ref({...userInfoStore.info})
+const userInfoStore = useUserInfoStore();
+const userInfo = ref({ ...userInfoStore.info })
 
 
+import { participateAddService, participateInfoService, participateDeleteService } from '@/api/participate';
+const participateOrWithdraw = ref("参加活动")
 
+const participateModel = ref({
+    memberId: '',
+    activityId: '',
+    name: '',
+    title: ''
+})
+const showActivity2 = async (row) => {
+    participateModel.value.activityId = row.id;
+    addOrDelete();
+
+    //数据拷贝
+    activityModel.value.title = row.title;
+    activityModel.value.categoryId = row.categoryId;
+    activityModel.value.content = row.content;
+    activityModel.value.state = row.state;
+    activityModel.value.startTime = row.startTime;
+    activityModel.value.progressState=row.progressState;
+
+    //扩展id属性传递给后台
+
+    activityModel.value.id = row.id
+}
+
+const addOrDelete = async () => {
+    let participateInfo = await participateInfoService(participateModel.value.activityId);
+    visibleDrawer2.value = true;
+    if (participateInfo.data === null) {
+        participateOrWithdraw.value = "参加活动";
+
+    } else {
+        participateOrWithdraw.value = "退出活动";
+    }
+}
+
+const addParticipate = async () => {
+    let result = await participateAddService(participateModel.value)
+    addOrDelete();
+    ElMessage.success(result.msg ? result.msg : '参加活动成功')
+}
+
+const deleteParticipate = async () => {
+    let result = await participateDeleteService(participateModel.value.activityId)
+    addOrDelete();
+    ElMessage.success(result.msg ? result.msg : '退出活动成功')
+}
+
+const dialogVisible = ref(false)
+
+//文章列表数据模型
+const participates = ref([
+    {
+        "activityId": 1,
+        "memberId": 8,
+        "name": "隔壁老明",
+        "title": "常规",
+    },
+    {
+        "activityId": 1,
+        "memberId": 8,
+        "name": "隔壁老明",
+        "title": "常规",
+    },
+    {
+        "activityId": 1,
+        "memberId": 8,
+        "name": "隔壁老明",
+        "title": "常规",
+    },
+])
+
+//分页条数据模型
+const pageNum_p = ref(1)//当前页
+const total_p = ref(20)//总条数
+const pageSize_p = ref(5)//每页条数
+
+//当每页条数发生了变化，调用此函数
+const onSizeChange_p = (size) => {
+    pageSize_p.value = size
+    participateList()
+}
+//当前页码发生变化，调用此函数
+const onCurrentChange_p = (num) => {
+    pageNum_p.value = num
+    participateList()
+}
+
+
+//获取文章列表数据
+import { participateListService, participateAdminDeleteService } from '@/api/participate';
+const participateList = async () => {
+    let params = {
+        pageNum: pageNum_p.value,
+        pageSize: pageSize_p.value,
+        activityId: participateModel.value.activityId
+    }
+    let result = await participateListService(params);
+
+    //渲染视图
+    total_p.value = result.data.total;
+    participates.value = result.data.items;
+}
+
+
+const adminDeleteParticipate = async (row) => {
+    let params = {
+        activityId: row.activityId,
+        memberId: row.memberId
+    }
+
+    //提示用户 确认框
+    ElMessageBox.confirm(
+        '你确认要使此会员退出活动吗?',
+        '温馨提示',
+        {
+            confirmButtonText: '确认',
+            cancelButtonText: '取消',
+            type: 'warning',
+        }
+    )
+        .then(async () => {
+            //调用接口
+            let result = await participateAdminDeleteService(params)
+            addOrDelete()
+            ElMessage.success(result.msg ? result.msg : '已为此会员退出活动')
+            participateList()
+            //刷新列表
+            participateList()
+        })
+        .catch(() => {
+            ElMessage({
+                type: 'info',
+                message: '已取消',
+            })
+        })
+
+
+}
+
+// const value1 = ref('')
 </script>
 <template>
     <el-card class="page-container">
         <template #header>
             <div class="header">
-                <span>文章管理</span>
+                <span>活动管理</span>
                 <div class="extra">
-                    <el-button type="primary" v-if="userInfo.rolelevel>2" @click="visibleDrawer = true;title='添加活动';clearData()">添加活动</el-button>
+                    <el-button type="primary" v-if="userInfo.rolelevel > 2"
+                        @click="visibleDrawer = true; title = '添加活动'; clearData()">添加活动</el-button>
                 </div>
             </div>
         </template>
         <!-- 搜索表单 -->
-        <el-form inline>
-            <el-form-item label="文章分类：">
+        <el-form inline v-if="userInfo.rolelevel > 1">
+            <el-form-item label="活动分类：">
                 <el-select placeholder="请选择" v-model="categoryId" style="width:200px;">
                     <el-option v-for="c in categorys" :key="c.id" :label="c.categoryName" :value="c.id">
                     </el-option>
@@ -252,14 +438,19 @@ const userInfo = ref({...userInfoStore.info})
         </el-form>
         <!-- 文章列表 -->
         <el-table :data="activities" style="width: 100%">
-            <el-table-column label="文章标题" width="400" prop="title"></el-table-column>
+            <el-table-column label="活动标题" width="250" prop="title"></el-table-column>
             <el-table-column label="分类" prop="categoryName"></el-table-column>
-            <el-table-column label="发表时间" prop="createTime"> </el-table-column>
             <el-table-column label="状态" prop="state"></el-table-column>
-            <el-table-column label="操作" width="100">
+            <el-table-column label="开始时间" width="300" prop="startTime"> </el-table-column>
+            <el-table-column label="进行状态" prop="progressState"></el-table-column>
+            <el-table-column label="操作" width="200">
                 <template #default="{ row }">
-                    <el-button :icon="Edit" circle plain type="primary" v-if="userInfo.rolelevel>2" @click="showActivity(row)"></el-button>
-                    <el-button :icon="Delete" circle plain type="danger" v-if="userInfo.rolelevel>2" @click="deleteActivity(row)"></el-button>
+                    <el-button :icon="Pointer" circle plain type="primary" v-if="userInfo.rolelevel > 0"
+                        @click="showActivity2(row)"></el-button>
+                    <el-button :icon="Edit" circle plain type="primary" v-if="userInfo.rolelevel > 2"
+                        @click="showActivity(row)"></el-button>
+                    <el-button :icon="Delete" circle plain type="danger" v-if="userInfo.rolelevel > 2"
+                        @click="deleteActivity(row)"></el-button>
                 </template>
             </el-table-column>
             <template #empty>
@@ -272,19 +463,30 @@ const userInfo = ref({...userInfoStore.info})
             @current-change="onCurrentChange" style="margin-top: 20px; justify-content: flex-end" />
 
 
-        <!-- 抽屉 -->
+        <!-- 抽屉1 -->
         <el-drawer v-model="visibleDrawer" :title="title" direction="rtl" size="50%">
             <!-- 添加文章表单 -->
             <el-form :model="activityModel" label-width="100px">
-                <el-form-item label="文章标题">
+                <el-form-item label="活动标题">
                     <el-input v-model="activityModel.title" placeholder="请输入标题"></el-input>
                 </el-form-item>
-                <el-form-item label="文章分类">
+                <el-form-item label="活动分类">
                     <el-select placeholder="请选择" v-model="activityModel.categoryId">
                         <el-option v-for="c in categorys" :key="c.id" :label="c.categoryName" :value="c.id">
                         </el-option>
                     </el-select>
                 </el-form-item>
+
+                <el-form-item label="活动日期">
+                    <div class="demo-datetime-picker">
+                        <div class="block">
+                            <span class="demonstration"></span>
+                            <el-date-picker v-model="activityModel.startTime" type="datetime"
+                                placeholder="Select date and time" />
+                        </div>
+                    </div>
+                </el-form-item>
+
                 <!-- <el-form-item label="文章封面">
 
                     <el-upload class="avatar-uploader" :auto-upload="false" :show-file-list="false">
@@ -294,18 +496,127 @@ const userInfo = ref({...userInfoStore.info})
                         </el-icon>
                     </el-upload>
                 </el-form-item> -->
-                <el-form-item label="文章内容">
+                <el-form-item label="活动内容">
                     <div class="editor">
                         <quill-editor theme="snow" v-model:content="activityModel.content" contentType="html">
                         </quill-editor>
                     </div>
                 </el-form-item>
                 <el-form-item>
-                    <el-button type="primary" @click="title=='添加活动'?addActivity('已发布'):updateActivity('已发布')">发布</el-button>
-                    <el-button type="info" @click="title=='添加活动'?addActivity('草稿'):updateActivity('草稿')">草稿</el-button>
+                    <el-button type="primary"
+                        @click="title == '添加活动' ? addActivity('已发布') : updateActivity('已发布')">发布</el-button>
+                    <el-button type="info"
+                        @click="title == '添加活动' ? addActivity('草稿') : updateActivity('草稿')">草稿</el-button>
                 </el-form-item>
             </el-form>
         </el-drawer>
+
+        <!-- 抽屉2 -->
+        <el-drawer v-model="visibleDrawer2" title="活动详情" direction="rtl" size="50%">
+            <!-- 添加文章表单 -->
+            <el-form :model="activityModel" label-width="100px">
+                <el-form-item label="活动标题">
+                    <el-input v-model="activityModel.title" placeholder="请输入标题" disabled></el-input>
+                </el-form-item>
+                <el-form-item label="活动分类">
+                    <el-select placeholder="请选择" v-model="activityModel.categoryId" disabled>
+                        <el-option v-for="c in categorys" :key="c.id" :label="c.categoryName" :value="c.id">
+                        </el-option>
+                    </el-select>
+                </el-form-item>
+
+                <el-form-item label="活动时间">
+                    <el-input v-model="activityModel.startTime" placeholder="请输入标题" disabled></el-input>
+                </el-form-item>
+
+
+
+                <el-form-item label="活动内容">
+                    <!-- <span >
+                        {{ activityModel.content.replace(/<p>.*?<\/p>/g, '') }}
+                    </span> -->
+                    <div class="editor">
+                        <quill-editor theme="snow" v-model:content="activityModel.content" contentType="html"
+                            readOnly=true>
+                        </quill-editor>
+                    </div>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" v-if="userInfo.rolelevel > 1 && activityModel.progressState==='未开始'"
+                        @click="participateOrWithdraw == '参加活动' ? addParticipate() : deleteParticipate()">{{
+                            participateOrWithdraw }}</el-button>
+                    <el-button type="info" v-if="userInfo.rolelevel > 1"
+                        @click="dialogVisible = true; participateList()">参加列表</el-button>
+                </el-form-item>
+            </el-form>
+        </el-drawer>
+
+
+        <!-- 参加活动会员列表弹窗 -->
+        <el-dialog v-model="dialogVisible" title="活动参加会员" width="70%">
+            <el-form :model="participateModel" label-width="100px" style="padding-right: 30px">
+
+                <el-table :data="participates" style="width: 100%">
+                    <el-table-column label="会员ID" prop="memberId"></el-table-column>
+                    <el-table-column label="姓名" prop="name"></el-table-column>
+
+                    <el-table-column label="操作" width="100">
+                        <template #default="{ row }">
+                            <el-button :icon="Delete" circle plain type="danger" v-if="userInfo.rolelevel > 2"
+                                @click="adminDeleteParticipate(row)"></el-button>
+                        </template>
+                    </el-table-column>
+
+                    <template #empty>
+                        <el-empty description="没有数据" />
+                    </template>
+                </el-table>
+
+                <!-- 分页条 -->
+                <el-pagination v-model:current-page="pageNum_p" v-model:page-size="pageSize_p"
+                    :page-sizes="[3, 5, 10, 15]" layout="jumper, total, sizes, prev, pager, next" background
+                    :total="total_p" @size-change="onSizeChange_p" @current-change="onCurrentChange_p"
+                    style="margin-top: 20px; justify-content: flex-end" />
+
+
+                <!-- <el-form-item label="姓名" prop="name">
+                    <el-input v-model="applyModel.name" minlength="1" maxlength="10" disabled></el-input>
+                </el-form-item>
+                <el-form-item label="邮箱" prop="emial">
+                    <el-input v-model="applyModel.email" minlength="1" maxlength="10" disabled></el-input>
+                </el-form-item>
+                <el-form-item label="宿舍楼" prop="dormitory">
+                    <el-input v-model="applyModel.dormitory" minlength="1" maxlength="15" disabled></el-input>
+                </el-form-item>
+
+                <div>
+                    <el-divider />
+                    <span style="display: block; text-align: center; width: 100%; font-weight: bold; font-size: 18px;">
+                        申请原因：
+                    </span>
+
+                    <span>
+                        &nbsp;&nbsp;{{ applyModel.content }}
+                    </span>
+
+                    <span style="display: block; text-align: right; width: 100%; font-weight: bold;">
+                        申请时间：
+                    </span>
+                    <span style="display: block; text-align: right; width: 100%; font-weight: bold; ">
+                        {{ applyModel.applyTime }}
+                    </span>
+
+                </div> -->
+
+            </el-form>
+            <!-- <template #footer>
+                <span class=" dialog-footer">
+                    <el-button @click="">拒绝</el-button>
+                    <el-button type="primary" @click=""> 同意
+                    </el-button>
+                </span>
+            </template> -->
+        </el-dialog>
 
     </el-card>
 </template>
@@ -359,5 +670,19 @@ const userInfo = ref({...userInfoStore.info})
     :deep(.ql-editor) {
         min-height: 200px;
     }
+}
+
+.demo-datetime-picker {
+    display: flex;
+    width: 100%;
+    padding: 0;
+    flex-wrap: wrap;
+}
+
+.demo-datetime-picker .block {
+    padding: 0px 0;
+    text-align: left;
+    border-right: solid 1px var(--el-border-color);
+    flex: 1;
 }
 </style>

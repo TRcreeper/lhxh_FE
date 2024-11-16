@@ -1,7 +1,8 @@
 <script setup>
 import {
     Edit,
-    Delete
+    Delete,
+    More
 } from '@element-plus/icons-vue'
 
 import { ref } from 'vue'
@@ -10,47 +11,50 @@ import { ref } from 'vue'
 const name = ref('')
 
 //文章列表数据模型
-const members = ref([
+const applys = ref([
     {
-        "id": 5,
-        "name": "creep",
-        "email": "22@qq.com",
-        "dormitory": "荷11",
-        "createTime": "2023-09-03 11:55:30",
-        "role": "干事"
+        "id": 1,
+        "userId":8,
+        "name": "隔壁老明",
+        "email": "laoming@qq.com",
+        "dormitory": "荷13",
+        "applyTime": "2024-08-26 15:32:49",
+        "content": "乐"
     },
     {
-       "id": 5,
-        "name": "creep",
-        "email": "22@qq.com",
-        "dormitory": "荷11",
-        "createTime": "2023-09-03 11:55:30",
-        "role": "干事"
+        "id": 1,
+        "userId":8,
+        "name": "隔壁老明",
+        "email": "laoming@qq.com",
+        "dormitory": "荷13",
+        "applyTime": "2024-08-26 15:32:49",
+        "content": "乐"
     },
     {
-       "id": 5,
-        "name": "creep",
-        "email": "22@qq.com",
-        "dormitory": "荷11",
-        "createTime": "2023-09-03 11:55:30",
-        "role": "干事"
+        "id": 1,
+        "userId":8,
+        "name": "隔壁老明",
+        "email": "laoming@qq.com",
+        "dormitory": "荷13",
+        "applyTime": "2024-08-26 15:32:49",
+        "content": "乐"
     },
 ])
 
 //分页条数据模型
 const pageNum = ref(1)//当前页
 const total = ref(20)//总条数
-const pageSize = ref(3)//每页条数
+const pageSize = ref(5)//每页条数
 
 //当每页条数发生了变化，调用此函数
 const onSizeChange = (size) => {
     pageSize.value = size
-    memberList()
+    applyList()
 }
 //当前页码发生变化，调用此函数
 const onCurrentChange = (num) => {
     pageNum.value = num
-    memberList()
+    applyList()
 }
 
 // //回显文章分类
@@ -61,18 +65,18 @@ const onCurrentChange = (num) => {
 // }
 
 //获取文章列表数据
-import { memberListService } from '@/api/member';
-const memberList = async () => {
+import { applyListService } from '@/api/apply';
+const applyList = async () => {
     let params = {
         pageNum: pageNum.value,
         pageSize: pageSize.value,
-        name: name.value ? name.value : null
+        // name: name.value ? name.value : null
     }
-    let result = await memberListService(params);
+    let result = await applyListService(params);
 
     //渲染视图
     total.value = result.data.total;
-    members.value = result.data.items;
+    applys.value = result.data.items;
 
     //处理数据，给数据模型扩展一个分类名称属性
     // for (let i = 0; i < users.value.length; i++) {
@@ -85,157 +89,105 @@ const memberList = async () => {
     // }
 }
 
-
-import { downloadUsersService } from '@/api/user';
-const downloadUsers=async()=>{
-    await downloadUsersService();
-
-}
-
-
 import useUserInfoStore from '@/stores/userInfo';
-const userInfoStore=useUserInfoStore();
-const userInfo = ref({...userInfoStore.info})
+const userInfoStore = useUserInfoStore();
+const userInfo = ref({ ...userInfoStore.info })
 
 // activityCategoryList();
-memberList();
-// import { Plus } from '@element-plus/icons-vue'
-// import { QuillEditor } from '@vueup/vue-quill'
-// import '@vueup/vue-quill/dist/vue-quill.snow.css'
-// import { ElMessage,ElMessageBox } from 'element-plus';
-// //控制抽屉是否显示
-// const visibleDrawer = ref(false)
-// //添加表单数据模型
-// const activityModel = ref({
-//     title: '',
-//     categoryId: '',
-//     // coverImg: '',
-//     content: '',
-//     state: ''
-// })
+applyList();
 
-// //添加文章
-// const addActivity=async(clickState)=>{
-//     activityModel.value.state=clickState;
-//     //调用接口
-//     let result=await activityAddService(activityModel.value);
-//     ElMessage.success(result.msg?result.msg:'添加成功');
-//     visibleDrawer.value=false;
-//     //刷新列表
-//     activityList();
-// }
+//控制弹窗是否显示
+const dialogVisible = ref(false)
 
-// //定义变量控制标题展示
-// const title=ref('')
+const applyModel = ref({
+    id: '',
+    userId:'',
+    name: "",
+    email: "",
+    dormitory: "",
+    applyTime: ""
+})
+//展示编辑弹窗
+const showApply = (row) => {
+    dialogVisible.value = true
 
+    //数据拷贝
+    applyModel.value.id = row.id;
+    applyModel.value.userId=row.userId;
+    applyModel.value.name = row.name;
+    applyModel.value.email = row.email;
+    applyModel.value.dormitory = row.dormitory;
+    applyModel.value.applyTime = row.applyTime;
 
-// //展示编辑弹窗
-// const showActivity=(row)=>{
-//     visibleDrawer.value=true;title.value='编辑活动'
-//     //数据拷贝
-//     activityModel.value.title=row.title;
-//     activityModel.value.categoryId=row.categoryId;
-//     activityModel.value.content=row.content;
-//     activityModel.value.state=row.state;
-//     //扩展id属性传递给后台
-//     activityModel.value.id=row.id
-// }
+    applyModel.value.content = row.content.replace(/<\/?p[^>]*>/g, "").trim();
+}
+import { ElMessage } from 'element-plus';
+import { applyDeleteService } from '@/api/apply';
+const deleteApply=async()=>{
+    let result = await applyDeleteService(applyModel.value.id);
+    ElMessage.info(result.msg?result.msg:'已拒绝该申请');
+    applyList();
+    dialogVisible.value=false;
+}
 
-// const updateActivity=async(clickState)=>{
-//     activityModel.value.state=clickState;
-//     //调用接口
-//     let result=await activityUpdateService(activityModel.value);
-//     ElMessage.success(result.msg?result.msg:'修改成功');
-//     visibleDrawer.value=false;
-//     //刷新列表
-//     activityList();
-// }
+const memberModel = ref({
+    id: '',
+    name: "",
+    email: "",
+    dormitory: ""
+})
+import { deleteApplyAndAddMemberService } from '@/api/member';
+const agreeApply=async()=>{
+    memberModel.value.id=applyModel.value.id;
+    memberModel.value.userId=applyModel.value.userId;
+    memberModel.value.name=applyModel.value.name;
+    memberModel.value.email=applyModel.value.email;
+    memberModel.value.dormitory=applyModel.value.dormitory;
+    let result=await deleteApplyAndAddMemberService(applyModel.value.id,memberModel.value); 
+    // let result2 = await applyDeleteService(applyModel.value.id);
+    // ElMessage.info(result1.msg && result2.msg ? result1.msg + result2.msg : '已同意该申请');
+    ElMessage.info(result.msg?result.msg:'已同意该申请');
+    applyList();
+    dialogVisible.value=false;
+}
 
-// //清空模型数据
-// const clearData=()=>{
-//     activityModel.value.title='';
-//     activityModel.value.categoryId='';
-//     activityModel.value.content=' ';
-//     activityModel.value.state='';
-// }
-
-// import { activityDeleteService } from '@/api/activity.js';
-// //删除分类
-// const deleteActivity=(row)=>{
-//     //提示用户 确认框
-//     ElMessageBox.confirm(
-//         '你确认要删除该活动信息吗?',
-//         '温馨提示',
-//         {
-//             confirmButtonText: '确认',
-//             cancelButtonText: '取消',
-//             type: 'warning',
-//         }
-//     )
-//         .then(async () => {
-//             //调用接口
-//             let result = await activityDeleteService(row.id);
-//             ElMessage({
-//                 type: 'success',
-//                 message: '删除成功',
-//             })
-//             //刷新列表
-//             activityList();
-//         })
-//         .catch(() => {
-//             ElMessage({
-//                 type: 'info',
-//                 message: '已取消',
-//             })
-//         })
-// }
 </script>
 <template>
     <el-card class="page-container">
         <template #header>
             <div class="header">
-                <span>学生管理</span>
+                <span>入社审批</span>
                 <!-- <div class="extra">
                     <el-button type="primary" @click="visibleDrawer = true;title='添加活动';clearData()">添加活动</el-button>
                 </div> -->
             </div>
         </template>
         <!-- 搜索表单 -->
-        <el-form inline>
+        <!-- <el-form inline>
             <el-form-item label="姓名查询：">
                 <el-input v-model="name" style="width: 240px" placeholder="请输入要查询姓名" />
-                <!-- <el-select placeholder="请选择" v-model="categoryId" style="width:200px;">
-                    <el-option v-for="c in categorys" :key="c.id" :label="c.categoryName" :value="c.id">
-                    </el-option>
-                </el-select> -->
             </el-form-item>
-
-            <!-- <el-form-item label="发布状态：">
-                <el-select placeholder="请选择" v-model="state" style="width:200px;">
-                    <el-option label="已发布" value="已发布"></el-option>
-                    <el-option label="草稿" value="草稿"></el-option>
-                </el-select>
-            </el-form-item> -->
             <el-form-item>
                 <el-button type="primary" @click="memberList">搜索</el-button>
                 <el-button @click="name = ''">重置</el-button>
-                <el-button v-if="userInfo.rolelevel>2" @click="downloadUsers">下载学生数据</el-button>
+                <el-button v-if="userInfo.rolelevel > 2" @click="downloadUsers">下载学生数据</el-button>
             </el-form-item>
-        </el-form>
+        </el-form> -->
         <!-- 学生列表 -->
-        <el-table :data="members" style="width: 100%">
-            <el-table-column label="id"  prop="id"></el-table-column>
+        <el-table :data="applys" style="width: 100%">
+            <el-table-column label="id" prop="id"></el-table-column>
             <el-table-column label="姓名" prop="name"></el-table-column>
             <el-table-column label="寝室楼" prop="dormitory"></el-table-column>
             <el-table-column label="邮箱" width="400" prop="email"> </el-table-column>
-            <el-table-column label="职位" prop="role"></el-table-column>
-            <!-- <el-table-column label="状态" prop="state"></el-table-column> -->
-            <!-- <el-table-column label="操作" width="100">
+            <el-table-column label="申请时间" prop="applyTime"></el-table-column>
+
+            <el-table-column label="审批" width="100">
                 <template #default="{ row }">
-                    <el-button :icon="Edit" circle plain type="primary" @click="showActivity(row)"></el-button>
-                    <el-button :icon="Delete" circle plain type="danger" @click="deleteActivity(row)"></el-button>
+
+                    <el-button :icon="More" circle plain type="primary" @click="showApply(row)"></el-button>
                 </template>
-            </el-table-column> -->
+            </el-table-column>
+
             <template #empty>
                 <el-empty description="没有数据" />
             </template>
@@ -246,6 +198,47 @@ memberList();
             @current-change="onCurrentChange" style="margin-top: 20px; justify-content: flex-end" />
 
 
+        <!-- 添加申请详情弹窗 -->
+        <el-dialog v-model="dialogVisible" title="申请详情" width="50%">
+            <el-form :model="applyModel" label-width="100px" style="padding-right: 30px">
+                <el-form-item label="姓名" prop="name">
+                    <el-input v-model="applyModel.name" minlength="1" maxlength="10" disabled></el-input>
+                </el-form-item>
+                <el-form-item label="邮箱" prop="emial">
+                    <el-input v-model="applyModel.email" minlength="1" maxlength="10" disabled></el-input>
+                </el-form-item>
+                <el-form-item label="宿舍楼" prop="dormitory">
+                    <el-input v-model="applyModel.dormitory" minlength="1" maxlength="15" disabled></el-input>
+                </el-form-item>
+
+                <div>
+                    <el-divider />
+                    <span style="display: block; text-align: center; width: 100%; font-weight: bold; font-size: 18px;">
+                        申请原因：
+                    </span>
+
+                    <span>
+                        &nbsp;&nbsp;{{ applyModel.content }}
+                    </span>
+
+                    <span style="display: block; text-align: right; width: 100%; font-weight: bold;">
+                        申请时间：
+                    </span>
+                    <span style="display: block; text-align: right; width: 100%; font-weight: bold; ">
+                        {{ applyModel.applyTime }}
+                    </span>
+
+                </div>
+
+            </el-form>
+            <template #footer>
+                <span class=" dialog-footer">
+                    <el-button @click="deleteApply()">拒绝</el-button>
+                    <el-button type="primary" @click="agreeApply()"> 同意
+                    </el-button>
+                </span>
+            </template>
+        </el-dialog>
         <!-- 抽屉 -->
 
         <!-- <el-drawer v-model="visibleDrawer" :title="title" direction="rtl" size="50%">
